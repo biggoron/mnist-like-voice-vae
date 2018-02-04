@@ -1,0 +1,53 @@
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING SIMPLE mixed
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config simple_mixed.ini
+
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING SIMPLE MFCC
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config simple_mfcc.ini
+
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING SIMPLE EMBEDDING
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config simple_embedding.ini
+
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING COMPLEX EMBEDDING
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config cpx_embedding.ini
+
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING COMPLEX MFCC
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config cpx_mfcc.ini
+for n in {1..10}
+do echo ########################
+done
+echo RUNNING COMPLEX MIXED
+for n in {1..10}
+do echo ########################
+done
+python src/tf_train_ctc.py --config cpx_mixed.ini
+

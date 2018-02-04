@@ -1,0 +1,239 @@
+*File 0*
+[txt]
+She had your dark suit in greasy wash water all year
+[orig]
+pau sh iy hv ae dcl d y axr dcl d aa r kcl k s ux tcl t q ix n gcl g r iy s iy w ao sh pau w ao dx axr q ao l y ih axr pau
+[decoded mfcc]
+pau sh iy hv ae dcl d y axr dcl d aa r kcl k s ux tcl t ix n gcl g r iy s iy w aa sh pau w ao dx axr q ao l y ih axr pau
+[decoded hybrid]
+epi sh iy hv ae dcl d axr dcl d aa r kcl k s ux tcl t q ix n gcl g r iy s iy wh aa sh epi wh ao dx axr q ao l y ih axr epi
+
+*File 1*
+[txt]
+Put the butcher block table in the garage.
+[orig]
+pau p uh tcl dh ax bcl b uh tcl ch axr bcl b l aa kcl t ey bcl b el ax n dh ix gcl g er aa sh pau
+[decoded mfcc]
+pau p uh tcl dh ax bcl b ah tcl ch axr bcl b l aa kcl t ey bcl b el ix n ix gcl g er aa sh pau
+[decoded hybrid]
+epi pcl p ah tcl dh ax bcl b ah tcl ch axr bcl b aa tcl t ey bcl b n dh ax gcl g er ao sh epi
+
+*File 2*
+[txt]
+That noise problem grows more annoying each day.
+[orig]
+pau dh eh tcl n oy z pcl p r aa bcl b l em gcl g r ow z pau m ao r en oy iy n iy tcl ch dcl d ey pau
+[decoded mfcc]
+pau dh eh tcl n ow w ix z pcl p aa bcl b ax gcl g ow z pau m ao n ax l iy n iy tcl ch dcl d ey n pau
+[decoded hybrid]
+epi dh ah tcl n ao z pcl p aa pcl p l ax n gcl g r ow z m ao r n oy iy n iy tcl ch tcl d ey epi
+
+*File 3*
+[txt]
+Mom strongly dislikes appetizers.
+[orig]
+pau m aa m s tcl t r ao ng l iy dcl d ix s pau l ay kcl k s q ae pcl p ix tcl t ay z axr z pau
+[decoded mfcc]
+pau q aa n z tcl t aa n l iy dcl jh ix s l ay kcl s q ae bcl b ax tcl t ay z er z pau
+[decoded hybrid]
+epi m ao n s tcl t r ao l iy dcl d ix s epi l ay kcl k s q ae pcl p ix tcl s ay z er z epi
+
+*File 4*
+[txt]
+Originally, the main types used were various compositions of polyesters.
+[orig]
+pau q ax r ih dcl jh en ax l iy pau dh ix m ey n tcl t ay pcl p sh y ux z tcl t pau w axr v eh r iy ix s kcl k ah m pcl p ax z ih sh ih n z ax v pcl p aa l iy eh s tcl t axr z pau
+[decoded mfcc]
+pau q aa r ih dcl jh ax l iy dh ix m iy n t ay tcl ch ux z tcl d ao r bcl v eh r iy ih s kcl k ah m pcl p ix z ih sh ih n z ax b aw iy eh s axr s pau
+[decoded hybrid]
+epi q aa r ih dcl jh ax l iy dh ax m ey n tcl t ay tcl ch ux z tcl t wh axr v eh r iy ix s kcl k ah m pcl p z ih sh ix n z ah v pcl b aa l iy eh s tcl t axr z epi
+
+*File 5*
+[txt]
+Don't ask me to carry an oily rag like that.
+[orig]
+pau d ow n ae s kcl m iy dx ix kcl k eh r iy ix n q oy l iy r ae gcl g l ay kcl k dh ae tcl pau
+[decoded mfcc]
+pau d ow n ae s kcl m iy dx ix kcl k eh r iy n q oy l iy r ae gcl g l ay kcl k dh ae tcl pau
+[decoded hybrid]
+epi d ow n ae s kcl m iy dx ix kcl k eh r iy ix n q oy l iy r ae gcl g l ay kcl k dh ae tcl epi
+
+*File 6*
+[txt]
+Lori's costume needed black gloves to be completely elegant.
+[orig]
+pau l ao r ix z kcl k aa s tcl t uw m pau n iy dx ix dcl b l ae kcl g l ah v z pau t ix bcl b iy kcl k ax m pcl p l iy tcl l iy pau eh l ax gcl g ix n tcl pau
+[decoded mfcc]
+pau m aa r z kcl k ae s tcl t ow n pau pau n iy dx ih dcl b l ae tcl k ax l aa z pau t ix bcl b iy kcl k ax n tcl p r iy l iy ah l ax gcl g ae tcl pau
+[decoded hybrid]
+epi m r ix z kcl k aa s tcl d ow epi n ux dx ix bcl b l ae kcl k ax l aw z epi t ix bcl b iy kcl k em pcl k l iy l iy q eh l ax dcl d eh n epi
+
+*File 7*
+[txt]
+You saw them always together those years.
+[orig]
+pau y ux s ao dh ah m ao w iy z tcl t ix gcl g eh dh axr dcl dh ow z y ih axr z pau
+[decoded mfcc]
+pau y iy s aa n ax n ao w iy s dcl d ix dcl g eh dcl axr dcl d ow z y ih z pau
+[decoded hybrid]
+epi q iy s aa n ix m ao l iy z tcl t ix gcl g ah dh er dcl d ow ow z y ih axr z epi
+
+*File 8*
+[txt]
+The theme may be the formation of a shape from which other shapes evolve.
+[orig]
+pau dh ah th iy m hh pau m ey bcl b iy dh ah f ao r m ey sh ax n q ah v ey sh ey pcl f axr m pau w ih tcl ch q ah dh ix sh ey pcl p s iy v aa v pau 
+[decoded mfcc]
+pau b eh tcl g ey n w ix tcl m ey bcl b iy dcl b el f ao m ey sh ix dh ax q ao v ey sh ey dcl f ah p w iy tcl ch q aa bcl b ih sh ey dcl s dcl d iy v aa f pau
+[decoded hybrid]
+epi dh ah tcl b ey n ix m ey bcl b iy dcl b ow f ao r n ey sh ix n q ao n ey sh ey tcl f el hh wh ih tcl ch pcl p q aw dh ix sh ey tcl s iy v ao l v epi
+
+*File 9*
+[txt]
+Propriety was synonymous with ritual observance, the mark of a true gentleman.
+[orig]
+pau p axr pcl p r ay axr dx iy w ah s ax n aa nx ax m ix s pau w ix th r ih tcl ch w el ah bcl z er v ax n tcl s pau dh ax m aa r kcl k q ah v ix tcl t r ux dcl jh eh nx el m ax n pau
+[decoded mfcc]
+pau b axr pcl p ay dx iy r eh s ix n aa r m ax s pau w ix th r ih tcl t w ax l ah bcl z aa r v eh tcl s dh ax m aa r gcl g aa v dh ix tcl t r ux dcl d ae m ah n dcl pau
+[decoded hybrid]
+epi b axr pcl p ay gcl ix ix eh s ix n aa m ah s epi wh ix th r ih tcl ch wh ax l ah bcl z er v ix n z epi dh ix m aa kcl k q ah dh ix tcl t r ux dcl jh aw m ix epi
+
+*File 10*
+[txt]
+Eating spinach nightly increases strength miraculously.
+[orig]
+pau hh iy ih ng s pcl p eh n ih dcl ch n ay tcl l iy ix n kcl k r iy s ih s tcl t r ih ng tcl t ax-h m er eh kcl k ax l ax s l iy pau
+[decoded mfcc]
+pau sh iy hv ae dcl d y axr dcl d aa r kcl k s ux tcl t q ix n gcl g r iy s iy w ao sh pau w ao dx axr q ao l y ih axr pau
+[decoded hybrid]
+epi q iy v iy ng s pcl p ih n ih tcl s epi n ay tcl l iy q ih n kcl k r iy s ih s tcl t r ih ng kcl t epi m axr eh kcl k ix ax l ix s l iy epi
+
+*File 11*
+[txt]
+Kindergarten children decorate their classrooms for all holidays.
+[orig]
+pau k ih n d er gcl aa r dcl en ch ih l dcl d r ix n dcl d eh kcl k er ey tcl dh eh r kcl k l ae s r ux m z f er q ao l hh aa l ax dcl d ey s pau
+[decoded mfcc]
+pau k ih n dcl d axr n aa r dcl en sh aw dcl jh ih n dcl d eh kcl k axr ey tcl dh ow kcl k ay s r ih m z f axr k ao pau q ao ax dcl d ey z pau
+[decoded hybrid]
+epi k ih n d axr l ay dcl en sh ow l dcl d ih n dcl d eh kcl k axr ey tcl dh er kcl k l ae s r ux n z f axr kcl k hh aw hh aa l ax dcl d ah s epi
+
+*File 12*
+[txt]
+Don't do Charlie's dirty dishes.
+[orig]
+pau dcl d ow n tcl d ux tcl ch aa l iy z dcl d er dx iy dcl d ih sh ix z pau
+[decoded mfcc]
+pau d ow n dcl d ux tcl ch aa l iy s dcl d eh dx iy dcl d ih sh ix s pau
+[decoded hybrid]
+epi d ow ng tcl t ux tcl ch aa l iy s tcl t r dx iy dcl d ey sh ix s epi
+
+*File 13*
+[txt]
+Each untimely income loss coincided with the breakdown of a heating system part.
+[orig]
+pau q iy tcl ch ah n tcl t ay m l iy ih n kcl k ah m l ao s kcl k ow ix n s ay dx ix dcl w ix th ax bcl b r ey kcl d aw nx ax v ix hv iy dx iy ng s ih s tcl t em pcl p aa r tcl t pau 
+[decoded mfcc]
+pau y ux tcl ch ih n tcl t ay m iy ix m kcl k eh m ao s kcl k ow n s ay dx axr w ax tcl th ax bcl b r ey d aa dx ax dx iy dx ix ng s ih s tcl t en pcl p aa r tcl t pau
+[decoded hybrid]
+epi y iy tcl ch eh n tcl t ay m iy ix n kcl k ah m el z kcl k ah n s ay dx ix wh ax th ax bcl b r ey kcl d aa nx ax m iy q iy dx ix ng k s ix s tcl t en m pcl p aa r tcl t epi 
+
+*File 14*
+[txt]
+Did you buy any corduroy overalls?
+[orig]
+pau jh ux bcl b ay nx iy kcl k ao r dx axr oy ow v axr ao l z pau
+[decoded mfcc]
+pau sh bcl b ay dx ix kcl k ao dx axr ow v r ow l z pau
+[decoded hybrid]
+epi sh iy bcl b ay ix ng kcl k ao r dx r oy ow v r ao z epi
+
+*File 15*
+[txt]
+Those were especially the ones that all other grownups laughed at loudest.
+[orig]
+pau dh ow z w axr ix s pcl p eh sh pau el iy dh ax w ah n z eh tcl t q ao l ah dh ix r gcl g r ow n ah pcl s pau l ae f tcl t eh tcl t l aw dx ix s tcl t pau
+[decoded mfcc]
+pau d ow z r er s tcl p r eh sh l iy dh ax w n z eh dx ao l ax dh ix gcl g r ah n dh ah v s l eh f bcl ae dcl l aw dx ix s tcl t pau
+[decoded hybrid]
+epi dh ow z wh er s pcl p ah sh epi l iy dh ax wh ah n z eh dx ao l ax dh axr gcl g r ah nx el pcl p s epi l ae f tcl t ae tcl l aw dx ix s tcl t epi
+
+*File 16*
+[txt]
+Drop five forms in the box before you go out.
+[orig]
+pau d r aa pcl f ay f ao m z en dh ax bcl b aa kcl k s bcl b ax f ao y ux gcl g ow aw tcl pau hv pau
+[decoded mfcc]
+pau r aa f ay f ow m z en dh ax bcl b ao kcl s pau f r iy gcl g l ae tcl pau
+[decoded hybrid]
+epi r aa f ay f ao r n z en dh ax bcl b ao s en f ao r iy gcl g uw l aw tcl epi
+
+*File 17*
+[txt]
+She is thinner than I am.
+[orig]
+pau sh iy ih z th ih nx er dh eh n ay ae m pau
+[decoded mfcc]
+pau sh iy s t ih m er dh ih n ow iy m pau
+[decoded hybrid]
+epi sh iy ih s pcl p ih nx axr dh eh n ow hv ax m epi
+
+*File 18*
+[txt]
+A chosen few will become Generals.
+[orig]
+pau q ah tcl ch ow z ih n f y ux w el bcl b iy kcl k ah m jh eh nx axr el s pau
+[decoded mfcc]
+pau q ah dcl ch ow z ax ix n ix v dcl jh iy l bcl b iy gcl g ah m jh ix n ow l z pau
+[decoded hybrid]
+epi q ah tcl ch ow z ax n ax f y ux wh el bcl b ix kcl k ah m z eh nx axr el z epi
+
+*File 19*
+[txt]
+Beg that guard for one gallon of gas
+[orig]
+pau b ey gcl g dh eh tcl g aa r dcl f axr w ah n gcl g eh l ax n ix v gcl g ae s pau
+[decoded mfcc]
+pau b ih gcl n ae gcl g ao r dcl d f r axr n gcl g eh l n ax v gcl g eh s pau
+[decoded hybrid]
+epi b ey ng dh ey gcl g aa r dcl d f r ao r n gcl d l ax n ax v kcl p ae s epi
+
+*File 20*
+[txt]
+Bob papered over the living room murals.
+[orig]
+pau b aa bcl p ey pcl p axr dcl d ow v axr dh el l ih v ix ng r uw m y er r ax l s pau
+[decoded mfcc]
+pau b ao pcl p ey pcl p axr dcl ah pcl v axr gcl el ih dh ix ng axr ix ng y ih ow l z z pau
+[decoded hybrid]
+epi b ao pcl p ey pcl p axr dx ow v ax v ax l ih v ix ng r ix m y axr r el z epi
+
+*File 21*
+[txt]
+Catastrophic economic cutbacks neglect the poor.
+[orig]
+pau k ae dx ah s tcl t r aa f ih kcl k eh kcl k ax n aa m ix kcl k ah tcl b ae kcl s pau n ix gcl g l eh kcl dh ax pcl p ao r pau
+[decoded mfcc]
+pau k ae v ax s kcl k r aa f ix kcl ah kcl k ax n ax nx ix kcl k aa pcl p ae kcl k s pau m ix gcl g l ae kcl dh ax pcl p ao pau
+[decoded hybrid]
+epi t ae dx ax s tcl k r ao ix kcl l ay kcl k ax n q ao nx ix kcl k aa pcl b ae kcl k s epi n ix gcl g l ae kcl dh ax pcl p ao r epi
+
+*File 22*
+[txt]
+Aim to balance your employee benefit package.
+[orig]
+pau q ey m tcl t ux bcl b ae l ah n s y er ix m pcl p l ow iy bcl b eh nx ax f ix tcl t pcl p ae kcl k ix dcl jh pau
+[decoded mfcc]
+pau q ey n jh axr bcl b aw n hh er ix kcl p ao ux bcl b eh m f ix tcl pcl p ae kcl k ix jh pau
+[decoded hybrid]
+epi q ey tcl ix bcl g eh ow n z axr ix pcl p ao iy y ux bcl b eh dx axr f ih tcl ch pcl p ay kcl k ix dcl jh epi
+
+*File 23*
+[txt]
+Elderly people are often excluded.
+[orig]
+pau q eh l dcl d axr l iy pcl p iy pcl p el aa r ao f ax nx ih kcl k s kcl k l uw dx ix dcl d pau
+[decoded mfcc]
+pau ow dcl g l iy pcl p iy p el aa f ix m iy s kcl w ih dcl pau
+[decoded hybrid]
+epi aw l tcl d l iy pcl p iy pcl wh ao r ao f axr m ey s kcl k wh ix epi
