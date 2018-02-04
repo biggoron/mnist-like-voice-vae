@@ -1,8 +1,10 @@
 import tensorflow as tf
+from tensorflow.contrib import rnn
 from tensorflow.contrib import layers
 
 from src.networks.inception import inception_module, deception_module
 from src.networks.convolutions import conv_1x1
+from src.networks.discriminator import discriminator
 
 def fc_encoder(x, n_output, keep_prob, normalize = False):
   with tf.variable_scope("fc_encoder"):
@@ -151,7 +153,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       activation_fn     = tf.nn.relu,
       scope             = 'conv_1'
     )
-    print(e.get_shape().as_list())
     # 1st max pool
     e = layers.max_pool2d(
       inputs      = e,
@@ -159,7 +160,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       stride      = 2,
       scope       = 'max_pool_1'
     )
-    print(e.get_shape().as_list())
 
     # 2nd convolution
     e = layers.conv2d(
@@ -170,7 +170,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       activation_fn     = tf.nn.relu,
       scope             = 'conv_2'
     )
-    print(e.get_shape().as_list())
     # 2nd max pool
     e = layers.max_pool2d(
       inputs      = e,
@@ -178,7 +177,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       stride      = 2,
       scope       = 'max_pool_2'
     )
-    print(e.get_shape().as_list())
 
     # 3rd convolution
     e = layers.conv2d(
@@ -190,7 +188,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       activation_fn     = tf.nn.relu,
       scope             = 'conv_3'
     )
-    print(e.get_shape().as_list())
     # 2nd max pool
     e = layers.max_pool2d(
       inputs      = e,
@@ -198,7 +195,6 @@ def conv_encoder(x, dim_z, keep_prob, normalize = False):
       stride      = 1,
       scope       = 'max_pool_3'
     )
-    print(e.get_shape().as_list())
 
     e = layers.flatten(e)
     e = tf.nn.dropout(e, keep_prob)
@@ -328,24 +324,55 @@ def conv_decoder(z, dim_img, keep_prob, normalize = False, reuse=False):
     e = tf.reshape(e, [-1, 13, 13])
   return e 
 
-def inception_encoder(x, dim_z, keep_prob, normalize = False):
+def inception_encoder(x, h, w, dim_z, keep_prob):
   with tf.variable_scope("inception_encoder"):
-    e = tf.reshape(x, [-1, 13, 13, 1])
-#    e = layers.batch_norm(e, scale = True, scope = 'batch_norm')
-    i1 = inception_module(e, 16, keep_prob, scope='inception_module_1')
-    i2 = inception_module(i1, 16, keep_prob, scope='inception_module_2')
-    i3 = inception_module(i2, 16, keep_prob, scope='inception_module_3')
-    i4 = inception_module(i3, 16, keep_prob, scope='inception_module_4')
-    i5 = inception_module(i4, 16, keep_prob, scope='inception_module_5')
-    
-    i5 = layers.flatten(i5)
+    reg = tf.contrib.layers.l2_regularizer(scale=0.0)
+    x = tf.reshape(x, [-1, h])
+    e = layers.fully_connected(
+      inputs              = x,
+      num_outputs         = 256,
+      activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
+      scope               = 'fc_1'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = 128,
+      activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
+      scope               = 'fc_2'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = 32,
+      activation_fn       = tf.nn.sigmoid,
+      weights_regularizer = reg,
+      scope               = 'fc_3'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = tf.reshape(e, [-1, w, 32, 1])
+    i1 = inception_module(e, 16, keep_prob, reg = reg, scope='inception_module_1')
+    i2 = inception_module(i1, 16, keep_prob, reg = reg, scope='inception_module_2')
+    i3 = inception_module(i2, 16, keep_prob, reg = reg, scope='inception_module_3')
+    i3 = layers.flatten(i3)
     
     # 1st hidden layer
     e = layers.fully_connected(
-      inputs              = i5,
+      inputs              = i3,
       num_outputs         = 512,
       activation_fn       = tf.nn.relu,
-      scope               = 'fc_layer'
+      weights_regularizer = reg,
+      scope               = 'fc_4'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = i3,
+      num_outputs         = 256,
+      activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
+      scope               = 'fc_5'
     )
     e = tf.nn.dropout(e, keep_prob)
 
@@ -354,59 +381,233 @@ def inception_encoder(x, dim_z, keep_prob, normalize = False):
       inputs              = e,
       num_outputs         = dim_z,
       activation_fn       = None,
-      scope               = 'stddev_output_layer'
+      scope               = 'fc_stddev_output_layer'
     )
     
     e2 = layers.fully_connected(
       inputs              = e,
       num_outputs         = dim_z,
       activation_fn       = None,
-      scope               = 'mean_output_layer'
+      scope               = 'fc_mean_output_layer'
     )
 
     return e2, e1
 
-def deception_decoder(z, dim_img, keep_prob, normalize = False, reuse=False):
+def deception_decoder(z, h, w, dim_img, keep_prob, reuse=False):
   with tf.variable_scope("conv_decoder", reuse=reuse):
-
+    reg = tf.contrib.layers.l2_regularizer(scale=0.0)
     e = layers.fully_connected(
       inputs              = z,
-      num_outputs         = 32,
+      num_outputs         = 128,
       activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
       scope               = 'first_fc_layer'
     )
     e = tf.nn.dropout(e, keep_prob)
     e = layers.fully_connected(
       inputs              = z,
-      num_outputs         = 64,
+      num_outputs         = 256,
       activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
       scope               = 'second_fc_layer'
     )
     e = tf.nn.dropout(e, keep_prob)
     e = layers.fully_connected(
       inputs              = z,
-      num_outputs         = 13*13*32,
+      num_outputs         = dim_img*32,
       activation_fn       = tf.nn.relu,
+      weights_regularizer = reg,
       scope               = 'third_fc_layer'
     )
     e = tf.nn.dropout(e, keep_prob)
 
-    e = tf.reshape(e, [-1, 13, 13, 32])
+    e = tf.reshape(e, [-1, w, h, 32])
 
-    i1 = deception_module(e, 16, 64, 'deception_1')
-    i2 = deception_module(i1, 8, 32, 'deception_2')
-    i3 = deception_module(i2, 8, 16, 'deception_3')
-    i4 = deception_module(i3, 8, 8, 'deception_4')
-    i5 = deception_module(i4, 1, 1, 'deception_5')
+    i2 = deception_module(e, 8, 32, 'deception_2', reg = reg)
+    i3 = deception_module(i2, 8, 16, 'deception_3', reg = reg)
+    i4 = deception_module(i3, 8, 8, 'deception_4', reg = reg)
+    i5 = deception_module(i4, 1, 1, 'deception_5', reg = reg)
 
     e = layers.conv2d_transpose(
       inputs            = i5,
       num_outputs       = 1,
-      kernel_size       = 5,
+      kernel_size       = 1,
       activation_fn     = tf.nn.tanh,
       scope             = 'deconv_5'
     )
 
-    e = tf.reshape(e, [-1, 13*13])
+    e = tf.reshape(e, [-1, dim_img])
 
   return e
+
+def rnn_encoder(x, h, w, dim_z, keep_prob):
+  with tf.variable_scope("rnn_encoder"):
+    x = tf.reshape(x, [-1, h])
+    e = layers.fully_connected(
+      inputs              = x,
+      num_outputs         = 256,
+      activation_fn       = tf.nn.relu,
+      scope               = 'fc_1'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = 64,
+      activation_fn       = tf.nn.relu,
+      scope               = 'fc_2'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = 32,
+      activation_fn       = tf.nn.sigmoid,
+      scope               = 'fc_3'
+    )
+    ee = e
+    e = tf.nn.dropout(e, keep_prob)
+    e = tf.reshape(e, [-1, w, 32])
+    e = tf.unstack(e, num = w, axis = 1)
+    cells = [rnn.BasicLSTMCell(32, forget_bias=1.0) for _ in range(3)]
+    stack = rnn.MultiRNNCell(cells, state_is_tuple=True)
+    e, final_state = rnn.static_rnn(stack, e, dtype=tf.float32)
+    e = tf.stack(e, axis=1)
+    e = tf.reshape(e, [-1, 32])
+    e = tf.nn.dropout(e, keep_prob)
+    e1 = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = dim_z,
+      activation_fn       = tf.nn.sigmoid,
+      scope               = 'fc_6'
+    )
+    e2 = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = dim_z,
+      activation_fn       = tf.nn.sigmoid,
+      scope               = 'fc_7'
+    )
+    e1 = tf.reshape(e1, [-1, w, dim_z])
+    e2 = tf.reshape(e2, [-1, w, dim_z])
+    return e1, e2
+
+def rnn_decoder(z, h, w, dim_z, keep_prob, reuse = False):
+  with tf.variable_scope("rnn_decoder"):
+    z = tf.reshape(z, [-1, dim_z])
+    e = layers.fully_connected(
+      inputs              = z,
+      num_outputs         = 256,
+      activation_fn       = tf.nn.relu,
+      scope               = 'fc_1'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = 128,
+      activation_fn       = tf.nn.relu,
+      scope               = 'fc_2'
+    )
+    e = tf.nn.dropout(e, keep_prob)
+    e = layers.fully_connected(
+      inputs              = e,
+      num_outputs         = h*8,
+      activation_fn       = tf.nn.sigmoid,
+      scope               = 'fc_3'
+    )
+    e = tf.reshape(e, [-1, w, h, 8])
+
+    # 1st deconv layer
+    e = layers.conv2d_transpose(
+      inputs            = e,
+      num_outputs       = 32,
+      kernel_size       = 5,
+      padding           = 'SAME',
+      activation_fn     = tf.nn.relu,
+      scope             = 'deconv_1'
+    )
+    print(e.get_shape().as_list())
+
+    # 2nd deconv layer
+    e = layers.conv2d_transpose(
+      inputs            = e,
+      num_outputs       = 8,
+      kernel_size       = 1,
+      stride            = 1,
+      padding           = 'SAME',
+      activation_fn     = tf.nn.relu,
+      scope             = 'deconv_2'
+    )
+    print(e.get_shape().as_list())
+
+    # 3rd deconv layer
+    e = layers.conv2d_transpose(
+      inputs            = e,
+      num_outputs       = 8,
+      kernel_size       = 3,
+      stride            = 1,
+      padding           = 'SAME',
+      activation_fn     = tf.nn.relu,
+      scope             = 'deconv_3'
+    )
+    print(e.get_shape().as_list())
+
+    # 4th deconv layer
+    e = layers.conv2d_transpose(
+      inputs            = e,
+      num_outputs       = 3,
+      kernel_size       = 3,
+      stride            = 1,
+      padding           = 'SAME',
+      activation_fn     = tf.nn.relu,
+      scope             = 'deconv_4'
+    )
+    print(e.get_shape().as_list())
+#    i3 = deception_module(e, 2, 2, 'deception_3')
+#    i4 = deception_module(i3, 2, 2, 'deception_4')
+#    i5 = deception_module(i4, 1, 1, 'deception_5')
+
+    e = layers.conv2d_transpose(
+      inputs            = e,
+      num_outputs       = 1,
+      kernel_size       = 1,
+      padding           = 'SAME',
+      activation_fn     = None,
+      scope             = 'deconv_5'
+    )
+
+    e = tf.reshape(e, [-1, h * w])
+
+    return e
+  
+def set_vae_elems(enc, dec):
+  vae_elems = {}
+  encs = ['fc','conv','inception','rnn']
+  decs = ['fc','conv','inception','rnn']
+  try:
+    assert enc in encs
+    if enc == 'fc':
+      vae_elems['encoder'] = fc_encoder
+    elif enc == 'conv':
+      vae_elems['encoder'] = conv_encoder
+    elif enc == 'inception':
+      vae_elems['encoder'] = inception_encoder
+    elif enc == 'rnn':
+      vae_elems['encoder'] = rnn_encoder
+  except :
+    print('vae must use either fully connected layers (enc_type = fc) or convolutional architecture (enc_type = conv, enc_type = inception)')
+
+  try:
+    assert dec in decs
+    if dec == 'fc':
+      vae_elems['decoder'] = fc_decoder
+    elif dec == 'conv':
+      vae_elems['decoder'] = conv_decoder
+    elif dec == 'inception':
+      vae_elems['decoder'] = deception_decoder
+    elif dec == 'rnn':
+      vae_elems['decoder'] = rnn_decoder
+  except :
+    print('vae must use either fully connected layers (dec_type = fc) or convolutional architecture (dec_type = conv)')
+
+  vae_elems['discriminator'] = discriminator
+
+  return vae_elems
+

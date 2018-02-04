@@ -59,10 +59,18 @@ def normal(batch_size, n_dim, mean=0, var=1, n_labels=10, use_label_info=False):
     z = np.random.normal(mean, var, (batch_size, n_dim)).astype(np.float32)
     return z
 
-def hypersphere(batch_size, n_dim, mean=0, var=1):
+def hypersphere(batch_size, n_dim, mean=0, var=0.5):
   z = np.random.normal(mean, var, (batch_size, n_dim)).astype(np.float32)
   d = np.random.normal(mean, var, (n_dim, batch_size)).astype(np.float32)
   r = np.sqrt((d**2 + 1e-8).sum(axis=0))
   d = np.rollaxis((d / r), 1, 0)
+  z = z + d
+  return z
+
+def hypersphere2(batch_size, w, n_dim, mean=0, var=0.5):
+  z = np.random.normal(mean, var, (batch_size, w, n_dim)).astype(np.float32)
+  d = np.random.normal(mean, var, (n_dim, batch_size, w)).astype(np.float32)
+  r = np.sqrt((d**2 + 1e-8).sum(axis=0))
+  d = np.rollaxis((d / r), 0, 2)
   z = z + d
   return z

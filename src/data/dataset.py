@@ -12,13 +12,13 @@ class VoiceData():
     self.train_file_table = [
       join(self.train_dir, f)
       for f in listdir(self.train_dir)
-      if isfile(join(self.train_dir, f)) and f[-8:] == 'mfcc.npy'
+      if isfile(join(self.train_dir, f)) and f[-4:] == '.npy'
     ]
     print('built train ft')
     self.test_file_table = [
       join(self.test_dir, f)
       for f in listdir(self.test_dir)
-      if isfile(join(self.test_dir, f)) and f[-8:] == 'mfcc.npy'
+      if isfile(join(self.test_dir, f)) and f[-4:] == '.npy'
     ]
     print('built test ft')
     np.random.shuffle(self.train_file_table)
@@ -31,7 +31,6 @@ class VoiceData():
     self.train_dir = config['train_dir']
     self.dev_dir = config['dev_dir']
     self.test_dir = config['test_dir']
-
 
 class Dataset():
   def __init__(self, config, ft, phase):

@@ -1,3 +1,2 @@
-# add tensorboard support
-
-# Clean it all
+create method to create phoneme string from .phn (one hot)
+create method to decode one hot encoding to phn

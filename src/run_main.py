@@ -1,375 +1,200 @@
 import os
+from random import randint
 
 import numpy as np
 import tensorflow as tf
 from sklearn import manifold
 from tqdm import tqdm
 
+from networks.vae_elements import set_vae_elems
 import data.mnist_data     as mnist
 import utils.prior_factory as prior
 import graphs.aae          as aae
 import utils.plot_utils    as plot_utils
 import data.dataset as dt
+import data.dataset2 as dt2
 
-"""main function"""
-def run_mnist(config):
+def run_timit(config):
 
   """ parameters """
+  # Setup which encoder and decoder will be used in the program
+  # FC only, convolutional, or inception
+  global vae_elems
+  VAE_ELEMS = set_vae_elems(config['enc_type'], config['dec_type'])
+
+  # Export all the important params to global range
+  global ROOT
+  ROOT = config['root']
+
+  # Output directories for imgs and models
+  global RESULTS_DIR
   RESULTS_DIR = config['results_dir']
+  global MODELS_DIR
+  MODELS_DIR = config['models_dir']
 
-  # network architecture
-  dim_img = config['image_size']**2  # number of pixels for a MNIST image
-  dim_z = config['dim_z']                      # to visualize learned manifold
+  # Dimensions of the input/outputs
+  global IMG_H # Nb of features
+  IMG_H = config['ft_nb']
+  global IMG_W # Nb of frames
+  IMG_W = config['image_width']
+  global DIM_IMG
+  DIM_IMG = IMG_H * IMG_W
+  global DIM_Z
+  DIM_Z = config['dim_z']
 
-  # train
-  n_epochs = config['num_epochs']
-  batch_size = config['batch_size']
-  learn_rate = config['learn_rate']
+  # Train params
+  global N_EPOCHS
+  N_EPOCHS = config['num_epochs']
+  global LEARN_RATE
+  LEARN_RATE = config['learn_rate']
+  global BATCH_SIZE
+  BATCH_SIZE = config['batch_size']
 
-  # Plot
-  PRR = config['PRR']                              # Plot Reproduce Result
-  PRR_n_img_x = config['PRR_n_img_x']              # number of images along x-axis in a canvas
-  PRR_n_img_y = config['PRR_n_img_y']              # number of images along y-axis in a canvas
-  PRR_resize_factor = config['PRR_resize_factor']  # resize factor for each image in a canvas
+  # Type of target distribution for the embeddings
+  global PRIOR_TYPE
+  PRIOR_TYPE = config['prior_type']
 
-  PMLR = config['PMLR']                            # Plot Manifold Learning Result
-  PMLR_n_img_x = config['PMLR_n_img_x']            # number of images along x-axis in a canvas
-  PMLR_n_img_y = config['PMLR_n_img_y']            # number of images along y-axis in a canvas
-  PMLR_resize_factor = config['PMLR_resize_factor']# resize factor for each image in a canvas
-  PMLR_z_range = config['PMLR_z_range']            # range for random latent vector
-  PMLR_n_samples = config['PMLR_n_samples']        # number of labeled samples to plot a map from input data space to the latent space
+  # load data
+  datastore = dt2.DataStore()
+  datastore.dir_to_collection('data/timit_data/', 'all')
+  datastore.dir_to_collection('data/dev_mfcc/', 'all')
+#  datastore.dir_to_collection('data/test_mfcc/', 'all')
+  datastore.shuffle_collection('all')
+  dataset = datastore.dataset('all', labels=False, step = 3, ftnb = 29, width = IMG_W)
+  n_samples = dataset.elem_nb
 
-  """ prepare MNIST data """
-  train_total_data, n_samples, _, _, test_data, test_labels = mnist.prepare_MNIST_data()
+  # sampler
+  if PRIOR_TYPE == 'hypersphere':
+    sampler = prior.hypersphere
+  if PRIOR_TYPE == 'normal':
+    sampler = prior.normal
 
   """ build graph """
   # input placeholders
   # In denoising-autoencoder, x_hat == x + noise, otherwise x_hat == x
-  x_hat = tf.placeholder(tf.float32, shape=[None, dim_img], name='input_img')
-  x = tf.placeholder(tf.float32, shape=[None, dim_img], name='target_img')
+  x = tf.placeholder(tf.float32, shape=[None, DIM_IMG], name='target_img')
 #  x_id = tf.placeholder(tf.float32, shape=[None, 10], name='input_img_label')
 
   # dropout
   keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
   # VAE random element
-  epsilon = tf.placeholder(tf.float32, shape=[None, dim_z], name='epsilon')
+  epsilon = tf.placeholder(tf.float32, shape=[None, DIM_Z], name='epsilon')
 
   # input for PMLR
-  z_in = tf.placeholder(tf.float32, shape=[None, dim_z], name='latent_variable')
+  z_in = tf.placeholder(tf.float32, shape=[None, DIM_Z], name='latent_variable')
 
   # samples drawn from prior distribution
-  z_sample = tf.placeholder(tf.float32, shape=[None, dim_z], name='prior_sample')
+  z_sample = tf.placeholder(tf.float32, shape=[None, DIM_Z], name='prior_sample')
 
   # network architecture
-  y, z, marginal_likelihood, marginal_likelihood_2, D_loss, G_loss = aae.adversarial_autoencoder(
-    x_hat, x, epsilon, z_sample, config['vae_elems'],
-    dim_img, dim_z, keep_prob, config['normalize']
+  y, z, marginal_likelihood, disc_loss, dist_loss = aae.adversarial_autoencoder(
+    x, epsilon, z_sample,
+    VAE_ELEMS,
+    DIM_IMG, IMG_H, IMG_W, DIM_Z,
+    keep_prob
   )
 
   # optimization
   t_vars = tf.trainable_variables()
-  d_vars = [var for var in t_vars if "discriminator" in var.name]
-  g_vars = [var for var in t_vars if "encoder" in var.name]
-  dec_vars = [var for var in t_vars if "decoder" in var.name]
+#  g_vars = [var for var in t_vars if "encoder" in var.name]
+#  dec_vars = [var for var in t_vars if "decoder" in var.name]
+#  d_vars = [var for var in t_vars if "discriminator" in var.name]
   ae_vars = [var for var in t_vars if "encoder" or "decoder" in var.name]
+#  reg_vars = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+#  regularizer = tf.contrib.layers.l2_regularizer(scale=0.1)
+#  lossL2 = tf.contrib.layers.apply_regularization(regularizer, reg_vars)
 
-
-  train_op_ae = tf.train.AdamOptimizer(learn_rate).minimize(
-    marginal_likelihood,
+  train_ae = tf.train.AdamOptimizer(LEARN_RATE).minimize(
+    marginal_likelihood ,
     var_list = ae_vars
   )
-  train_op_distr = tf.train.AdamOptimizer(learn_rate).minimize(
-    marginal_likelihood_2,
-    var_list = g_vars
-  )
-  train_op_d = tf.train.AdamOptimizer(learn_rate).minimize(
-    D_loss,
-    var_list = d_vars
-  )
-  train_op_g = tf.train.AdamOptimizer(learn_rate).minimize(
-    G_loss,
-    var_list = g_vars
-  )
-
-  train_op_tot = tf.train.AdamOptimizer(learn_rate).minimize(
-    marginal_likelihood + marginal_likelihood_2 * 0.001,
-    var_list = ae_vars
-  )
-  """ training """
-
-  # Plot for reproduce performance
-  if PRR:
-    PRR = plot_utils.Plot_Reproduce_Performance(RESULTS_DIR, PRR_n_img_x, PRR_n_img_y, config['image_size'], config['image_size'], PRR_resize_factor)
-
-    x_PRR = test_data[0:PRR.n_tot_imgs, :]
-
-    x_PRR_img = x_PRR.reshape(PRR.n_tot_imgs, config['image_size'], config['image_size'])
-    PRR.save_images(x_PRR_img, name='input.jpg')
-
-  # Plot for manifold learning result
-  if PMLR:
-    PMLR = plot_utils.Plot_Manifold_Learning_Result(RESULTS_DIR, PMLR_n_img_x, PMLR_n_img_y, config['image_size'], config['image_size'], PMLR_resize_factor, PMLR_z_range)
-
-    x_PMLR = test_data[0:PMLR_n_samples, :]
-    id_PMLR = test_labels[0:PMLR_n_samples, :]
-
-    decoded = aae.decoder(z_in, config['vae_elems']['decoder'], dim_img, config['normalize'])
-
-  # train
-  total_batch = int(n_samples / batch_size)
-  min_tot_loss = 1e99
-
-  with tf.Session() as sess:
-
-    sess.run(tf.global_variables_initializer(), feed_dict={keep_prob : 0.9})
-
-
-    for epoch in range(n_epochs):
-
-      # Random shuffling
-      np.random.shuffle(train_total_data)
-      train_data_ = train_total_data[:, :-mnist.NUM_LABELS]
-
-      # Loop over all batches
-      tbar = tqdm(range(total_batch))
-      for i in tbar:
-        # Compute the offset of the current minibatch in the data.
-        offset = (i * batch_size) % (n_samples)
-        batch_xs_input = train_data_[offset:(offset + batch_size), :]
-        batch_xs_target = batch_xs_input
-
-        if config['prior_type'] == 'hypersphere':
-          samples = prior.hypersphere(batch_size, dim_z)
-        if config['prior_type'] == 'normal':
-          samples = prior.normal(batch_size, dim_z)
-
-        epsilon_sample = np.random.normal(0, 1, [batch_size, dim_z])
-
-
-#        while d_loss > g_loss:
-#        #for _ in range(4):
-#          _, d_loss = sess.run(
-#            (train_op_d, D_loss),
-#            feed_dict={
-#              x_hat: batch_xs_input,
-#              x: batch_xs_target,
-#              epsilon: epsilon_sample,
-#              z_sample: samples,
-#              keep_prob: 0.5
-#            }
-#          )
-#          print("epoch %d: L_tot %03.4f L_likelihood %03.4f D_LOSS %03.4f g_loss %03.4f" % (epoch, tot_loss, loss_likelihood, d_loss, g_loss))
-
-        for _ in range(8):
-          _, loss_likelihood, loss_distr = sess.run(
-            (train_op_tot, marginal_likelihood, marginal_likelihood_2),
-            feed_dict={
-              x_hat: batch_xs_input,
-              x: batch_xs_target,
-              epsilon: epsilon_sample,
-              z_sample: samples,
-              keep_prob: 0.75
-            }
-          )
-        #print("epoch %d: L_tot %03.4f L_likelihood %03.4f d_loss %03.4f g_loss %03.4f" % (epoch, tot_loss, loss_likelihood, d_loss, g_loss))
-
-#        while 0.100 > g_loss:
-#        #for _ in range(4):
-#          _, loss_likelihood, g_loss, d_loss = sess.run(
-#            (train_op_ae, neg_marginal_likelihood, G_loss, D_loss),
-#            feed_dict={
-#              x_hat: batch_xs_input,
-#              x: batch_xs_target,
-#              epsilon: epsilon_sample,
-#              z_sample: samples,
-#              keep_prob: 0.5
-#            }
-#          )
-#          print("epoch %d: L_tot %03.4f L_likelihood %03.4f d_loss %03.4f G_LOSS %03.4f" % (epoch, tot_loss, loss_likelihood, d_loss, g_loss))
-
-        # print cost every epoch
-      print("epoch %d: L_likelihood %03.4f distr_loss %03.4f" % (epoch, loss_likelihood, loss_distr))
-
-      # if minimum loss is updated or final epoch, plot results
-      if epoch%5==0: # or min_tot_loss > tot_loss or epoch+1 == n_epochs:
-        # Plot for reproduce performance
-        if PRR:
-          epsilon_sample = np.zeros([x_PRR.shape[0], dim_z])
-          y_PRR = sess.run(
-            y,
-            feed_dict={
-              x_hat: x_PRR,
-              epsilon: epsilon_sample,
-              keep_prob : 1
-            }
-          )
-          y_PRR_img = y_PRR.reshape(PRR.n_tot_imgs, config['image_size'], config['image_size'])
-          PRR.save_images(y_PRR_img, name="/PRR_epoch_%02d" %(epoch) + ".jpg")
-
-        # Plot for manifold learning result
-        if PMLR and dim_z == 2:
-          y_PMLR = sess.run(decoded, feed_dict={z_in: PMLR.z, keep_prob : 1})
-          y_PMLR_img = y_PMLR.reshape(PMLR.n_tot_imgs, config['image_size'], config['image_size'])
-          PMLR.save_images(y_PMLR_img, name="/PMLR_epoch_%02d" % (epoch) + ".jpg")
-
-        if PMLR:
-          # plot distribution of labeled images
-          epsilon_sample = np.zeros([x_PMLR.shape[0], dim_z])
-          z_PMLR = sess.run(
-            z,
-            feed_dict={
-              x_hat: x_PMLR,
-              epsilon: epsilon_sample,
-              keep_prob : 1
-            }
-          )
-          tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
-          try:
-            l_tsne = tsne.fit_transform(z_PMLR)
-          except ValueError as e:
-            print('problem with tsne')
-            print(e)
-            
-          PMLR.save_scattered_image(l_tsne, id_PMLR, name="/PMLR_map_epoch_%02d" % (epoch) + ".jpg")
-
-def run_voice(config):
-
-  """ parameters """
-  RESULTS_DIR = config['results_dir']
-  MODELS_DIR = config['model_dir']
-
-  # network architecture
-  dim_img = config['image_size']**2  # number of pixels for a MNIST image
-  dim_z = config['dim_z']                      # to visualize learned manifold
-
-  # train
-  n_epochs = config['num_epochs']
-  batch_size = config['batch_size']
-  learn_rate = config['learn_rate']
-
-  # Plot
-  PRR = config['PRR']                              # Plot Reproduce Result
-  PRR_n_img_x = config['PRR_n_img_x']              # number of images along x-axis in a canvas
-  PRR_n_img_y = config['PRR_n_img_y']              # number of images along y-axis in a canvas
-  PRR_resize_factor = config['PRR_resize_factor']  # resize factor for each image in a canvas
-
-  PMLR = config['PMLR']                            # Plot Manifold Learning Result
-  PMLR_n_img_x = config['PMLR_n_img_x']            # number of images along x-axis in a canvas
-  PMLR_n_img_y = config['PMLR_n_img_y']            # number of images along y-axis in a canvas
-  PMLR_resize_factor = config['PMLR_resize_factor']# resize factor for each image in a canvas
-  PMLR_z_range = config['PMLR_z_range']            # range for random latent vector
-  PMLR_n_samples = config['PMLR_n_samples']        # number of labeled samples to plot a map from input data space to the latent space
-
-  """ prepare MNIST data """
-#  train_total_data, n_samples, _, _, test_data, test_labels = mnist.prepare_MNIST_data()
-
-
-  dataset = dt.VoiceData(config)
-  n_samples = dataset.train.elem_nb
-
-
-  """ build graph """
-  # input placeholders
-  # In denoising-autoencoder, x_hat == x + noise, otherwise x_hat == x
-  x_hat = tf.placeholder(tf.float32, shape=[None, 13 * 13], name='input_img')
-  x = tf.placeholder(tf.float32, shape=[None, 13 * 13], name='target_img')
-#  x_id = tf.placeholder(tf.float32, shape=[None, 10], name='input_img_label')
-
-  # dropout
-  keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-
-  # VAE random element
-  epsilon = tf.placeholder(tf.float32, shape=[None, dim_z], name='epsilon')
-
-  # input for PMLR
-  z_in = tf.placeholder(tf.float32, shape=[None, dim_z], name='latent_variable')
-
-  # samples drawn from prior distribution
-  z_sample = tf.placeholder(tf.float32, shape=[None, dim_z], name='prior_sample')
-
-  # network architecture
-  y, z, marginal_likelihood, marginal_likelihood_2 = aae.adversarial_autoencoder(
-    x_hat, x, epsilon, z_sample, config['vae_elems'],
-    dim_img, dim_z, keep_prob, config['normalize']
-  )
-
-  # optimization
-  t_vars = tf.trainable_variables()
-  g_vars = [var for var in t_vars if "encoder" in var.name]
-  dec_vars = [var for var in t_vars if "decoder" in var.name]
-  ae_vars = [var for var in t_vars if "encoder" or "decoder" in var.name]
-
-  train_op_tot = tf.train.AdamOptimizer(learn_rate).minimize(
-    marginal_likelihood,
-    var_list = ae_vars
-  )
-  train_distr = tf.train.AdamOptimizer(learn_rate).minimize(
-    marginal_likelihood + marginal_likelihood_2 * 0.1,
-    var_list = ae_vars
-  )
+#  train_g = tf.train.AdamOptimizer(LEARN_RATE).minimize(
+#    marginal_likelihood,
+#    var_list = dec_vars
+#  )
+#  train_distr = tf.train.AdamOptimizer(LEARN_RATE).minimize(
+#    dist_loss,
+#    var_list = g_vars
+#  )
+#  train_disc =  tf.train.AdamOptimizer(LEARN_RATE).minimize(
+#    disc_loss,
+#    var_list = d_vars
+#  )
   """ training """
 
   # train
-  total_batch = int(n_samples / batch_size)
+  total_batch = int(n_samples / BATCH_SIZE)
 
   with tf.Session() as sess:
 
-    sess.run(tf.global_variables_initializer(), feed_dict={keep_prob : 0.75})
+    sess.run(tf.global_variables_initializer(), feed_dict={keep_prob : 0.8})
 
     saver = tf.train.Saver()
 
-    for epoch in range(n_epochs):
+    print_step = 100
+    divider1 = print_step
+#    divider2 = print_step * DIM_Z
+    loss_dist = 1.0
+    loss_disc = 1.5
+
+    for epoch in range(N_EPOCHS):
 
       # Random shuffling
-      dataset.train.shuffle_data()
-      dataset.train.reset_index()
+      dataset.shuffle_data()
+      dataset.reset_index()
 
       avg_loss = 0
-      avg_d_loss = 0
-      loss_distr = 0
 
       # Loop over all batches
       tbar = tqdm(range(total_batch))
       for i in tbar:
         # Compute the offset of the current minibatch in the data.
-        offset = (i * batch_size) % (n_samples)
-        batch_xs_input = dataset.train.next_batch(batch_size, offset)
-        batch_xs_target = batch_xs_input
+        offset = (i * BATCH_SIZE) % (n_samples)
+        batch_xs_input = dataset.next_batch(BATCH_SIZE, offset, dropout=True, fulls=True)
 
+#        epsilon_sample = prior.hypersphere(BATCH_SIZE * IMG_W, DIM_Z)
+        epsilon_sample = np.random.normal(0, 1, [BATCH_SIZE, DIM_Z])
 
-        epsilon_sample = np.random.normal(0, 1, [batch_size, dim_z])
-        if False: #loss_distr > 5:
-          _, loss_likelihood, loss_distr = sess.run(
-            (train_distr, marginal_likelihood, marginal_likelihood_2),
-            feed_dict={
-              x_hat: batch_xs_input,
-              x: batch_xs_target,
-              epsilon: epsilon_sample,
-              keep_prob: 0.75
-            }
-          )
-        if True: # loss_distr < 50:
-          _, loss_likelihood, loss_distr = sess.run(
-            (train_op_tot, marginal_likelihood, marginal_likelihood_2),
-            feed_dict={
-              x_hat: batch_xs_input,
-              x: batch_xs_target,
-              epsilon: epsilon_sample,
-              keep_prob: 0.75
-            }
-          )
+#        if randint(0, int((6. * loss_dist / loss_disc)**2)) == 0:
+#          samples = sampler(BATCH_SIZE, DIM_Z)
+#          _, loss_dist, loss_disc = sess.run(
+#            (train_disc, dist_loss, disc_loss),
+#            feed_dict={
+#              x: batch_xs_input,
+#              z_sample: samples,
+#              epsilon: epsilon_sample,
+#              keep_prob: 0.8
+#            }
+#          )
+#        if randint(0, int((1. / 2.25) * ((loss_dist / loss_disc) - 5 )**2)) == 0:
+#          samples = sampler(BATCH_SIZE, DIM_Z)
+#          _, loss_dist, loss_disc = sess.run(
+#            (train_distr, dist_loss, disc_loss),
+#            feed_dict={
+#              x: batch_xs_input,
+#              z_sample: samples,
+#              epsilon: epsilon_sample,
+#              keep_prob: 0.8
+#            }
+#          )
+        samples = sampler(BATCH_SIZE, DIM_Z)
+        _, loss_likelihood = sess.run(
+          (train_ae, marginal_likelihood),
+          feed_dict={
+            x: batch_xs_input,
+            z_sample: samples,
+            epsilon: epsilon_sample,
+            keep_prob: 0.8
+          }
+        )
 
-        avg_d_loss += loss_distr
+#        avg_dc_loss += loss_disc
+#        avg_dt_loss += loss_distr
         avg_loss += loss_likelihood
         
-        if i % 1 == 0:
-          print("epoch %d: L_likelihood %03.6f || L_distr %03.6f" % (epoch, avg_loss/16900., avg_d_loss/16900.))
+        if i % print_step == print_step - 1:
+          print("epoch %d: L_likelihood %03.6f" % (epoch, avg_loss/divider1))
           avg_loss = 0
-          avg_d_loss = 0
-          
-
-        # print cost every epoch
-      print("epoch %d: L_likelihood %03.6f || L_distr %03.6f" % (epoch, avg_loss/16900., avg_d_loss))
 
       save_path = saver.save(sess, os.path.join(MODELS_DIR, 'save_%i.ckpt' % epoch))
